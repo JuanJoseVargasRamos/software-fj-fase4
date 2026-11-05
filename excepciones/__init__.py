@@ -1,0 +1,38 @@
+"""Paquete de excepciones personalizadas para Software FJ."""
+from .excepciones_sistema import (
+    CalculoInconsistenteException,
+    CapacidadExcedidaException,
+    ClienteNoEncontradoException,
+    DatosInvalidosException,
+    EmailInvalidoException,
+    EstadoReservaInvalidoException,
+    IdentificacionInvalidaException,
+    OperacionNoPermitidaException,
+    ParametroServicioInvalidoException,
+    ReservaException,
+    ReservaInvalidaException,
+    ServicioException,
+    ServicioNoDisponibleException,
+    ServicioNoEncontradoException,
+    SoftwareFJException,
+    TelefonoInvalidoException,
+)
+
+__all__ = [
+    "SoftwareFJException",
+    "DatosInvalidosException",
+    "IdentificacionInvalidaException",
+    "EmailInvalidoException",
+    "TelefonoInvalidoException",
+    "ServicioException",
+    "ServicioNoDisponibleException",
+    "ParametroServicioInvalidoException",
+    "CapacidadExcedidaException",
+    "ReservaException",
+    "ReservaInvalidaException",
+    "EstadoReservaInvalidoException",
+    "ClienteNoEncontradoException",
+    "ServicioNoEncontradoException",
+    "OperacionNoPermitidaException",
+    "CalculoInconsistenteException",
+]
