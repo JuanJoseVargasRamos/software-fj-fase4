@@ -4,10 +4,11 @@ Punto de Entrada Principal (Main) - Software FJ.
 Proporciona una interfaz interactiva de consola que permite ejecutar
 tanto la batería completa de simulaciones como operaciones individuales
 en tiempo real con manejo integral de excepciones y logging continuo.
-Totalmente blindado contra entradas anómalas del usuario (la app nunca colapsa).
+Totalmente blindado contra EOFError, entradas NaN/Inf y fallos inesperados.
 """
 
 import sys
+import math
 from pathlib import Path
 
 # Configurar el path del proyecto para importaciones directas
@@ -28,7 +29,7 @@ def menu_principal():
        SOFTWARE FJ - SISTEMA INTEGRAL DE GESTIÓN (FASE 4)
              UNAD - CURSO DE PROGRAMACIÓN (213023)
 ===================================================================
-1. Ejecutar Batería de 12 Simulaciones Oficiales (Requisito Rúbrica)
+1. Ejecutar Batería de 14 Simulaciones Oficiales (Requisito Rúbrica)
 2. Registrar un Cliente
 3. Consultar y Listar Clientes
 4. Registrar un Servicio Especializado
@@ -56,8 +57,9 @@ def precargar_datos_demo(sistema: SistemaGestionSoftwareFJ):
         sistema.registrar_servicio(
             AsesoriaEspecializada("ASE-CYBER", "Consultoría en Ciberseguridad", 150000.0, "Seguridad Ofensiva", "SENIOR")
         )
+        logger_sistema.info("Precarga inicial de datos demo realizada con éxito.")
     except Exception as e:
-        logger_sistema.debug(f"Precarga inicial completada con ajustes: {e}")
+        logger_sistema.warning(f"Aviso durante precarga inicial: {e}")
 
 
 def main():
@@ -70,8 +72,9 @@ def main():
             opcion = input("Seleccione una opción: ").strip()
 
             if opcion == "1":
-                print("\n>>> Ejecutando batería oficial de 12 simulaciones...")
-                ejecutar_bateria_simulaciones(sistema)
+                print("\n>>> Ejecutando batería oficial de 14 simulaciones aisladas...")
+                # Pasar None garantiza un sistema fresco e independiente cada vez que se ejecute la opción
+                ejecutar_bateria_simulaciones(None)
                 input("\nPresione [ENTER] para regresar al menú principal...")
 
             elif opcion == "2":
@@ -85,9 +88,6 @@ def main():
                     print(f"[OK] Cliente registrado satisfactoriamente: {cliente}")
                 except SoftwareFJException as err:
                     print(f"[AVISO DEL SISTEMA]: {err}")
-                except Exception as e:
-                    print(f"[ERROR INESPERADO]: {e}")
-                    logger_sistema.error(f"Error imprevisto en menú registro cliente: {e}")
 
             elif opcion == "3":
                 print("\n--- LISTADO DE CLIENTES REGISTRADOS ---")
@@ -107,10 +107,8 @@ def main():
 
                 try:
                     if tipo == "1":
-                        tarifa_str = input("Tarifa por hora ($): ").strip()
-                        capacidad_str = input("Capacidad máxima de personas: ").strip()
-                        tarifa = float(tarifa_str)
-                        capacidad = int(capacidad_str)
+                        tarifa = float(input("Tarifa por hora ($): ").strip())
+                        capacidad = int(input("Capacidad máxima de personas: ").strip())
                         servicio = ReservaSala(codigo, nombre, tarifa, capacidad)
                     elif tipo == "2":
                         tarifa = float(input("Tarifa por día ($): ").strip())
@@ -154,6 +152,9 @@ def main():
                     duracion = float(dur_str)
                     descuento = float(desc_str)
 
+                    if not math.isfinite(duracion) or not math.isfinite(descuento):
+                        raise ValueError("Los valores no pueden ser NaN o Infinito.")
+
                     reserva = sistema.crear_reserva(
                         id_reserva=id_res,
                         identificacion_cliente=id_cli,
@@ -163,7 +164,7 @@ def main():
                     )
                     print(f"[OK] Reserva creada: {reserva}")
                 except ValueError as ve:
-                    print(f"[AVISO]: La duración o descuento deben ser valores numéricos válidos: {ve}")
+                    print(f"[AVISO]: La duración o descuento deben ser números finitos válidos: {ve}")
                 except SoftwareFJException as err:
                     print(f"[AVISO DEL SISTEMA]: {err}")
 
@@ -227,11 +228,16 @@ def main():
             else:
                 print("[AVISO]: Opción inválida. Ingrese un número del 0 al 11.")
 
+        except EOFError:
+            # Control de cierre de entrada estándar (evita bucles infinitos en redirecciones o Ctrl+Z/Ctrl+D)
+            logger_sistema.info("Entrada estándar cerrada (EOFError detectado); finalizando ejecución limpiamente.")
+            print("\n[INFO]: Entrada estándar finalizada. Cerrando Software FJ.")
+            break
         except KeyboardInterrupt:
             print("\nOperación interrumpida por el usuario. Regresando al menú.")
         except Exception as e:
-            print(f"[ERROR CONTROLADO]: Se presentó una eventualidad: {e}")
-            logger_sistema.error(f"Excepción general capturada en bucle principal: {e}")
+            print(f"[ERROR CONTROLADO]: Eventualidad imprevista: {e}")
+            logger_sistema.exception(f"Excepción imprevista capturada en el bucle principal: {e}")
 
 
 if __name__ == "__main__":

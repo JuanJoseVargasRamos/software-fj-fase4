@@ -3,17 +3,19 @@ Módulo de Gestión de Reservas para Software FJ.
 
 Define la clase Reserva, que integra Cliente, Servicio, Duración y Estado.
 Implementa el ciclo de vida completo de la reserva (confirmación, cancelación,
-procesamiento y facturación), incorporando de forma rigurosa:
+procesamiento y facturación), incorporando:
 - Bloques try/except
 - Bloques try/except/else
 - Bloques try/finally
 - Encadenamiento de excepciones (raise ... from ...)
+- Validación rigurosa de números finitos (protección contra NaN e Inf)
 - Registro en logs de cada transición.
 """
 
+import math
 from enum import Enum
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from modelos.base import EntidadBase
 from modelos.cliente import Cliente
@@ -49,6 +51,8 @@ class Reserva(EntidadBase):
         duracion: float,
         descuento: float = 0.0,
         impuesto: float = 0.19,
+        recargo_urgencia: float = 0.0,
+        **detalles_servicio,
     ):
         super().__init__(id_entidad=id_reserva)
 
@@ -61,14 +65,21 @@ class Reserva(EntidadBase):
             duracion_val = float(duracion)
             descuento_val = float(descuento)
             impuesto_val = float(impuesto)
+            recargo_val = float(recargo_urgencia)
         except (ValueError, TypeError) as err_conversion:
             raise ParametroServicioInvalidoException(
-                f"Parámetros numéricos de reserva corruptos o no convertibles: {err_conversion}",
+                f"Parámetros numéricos de reserva no convertibles: {err_conversion}",
                 parametro="duracion/descuento/impuesto"
             ) from err_conversion
 
-        if duracion_val <= 0:
-            raise ParametroServicioInvalidoException("La duración de la reserva debe ser mayor a cero.", "duracion")
+        if not math.isfinite(duracion_val) or duracion_val <= 0:
+            raise ParametroServicioInvalidoException("La duración debe ser un número finito positivo.", "duracion")
+        if not math.isfinite(descuento_val) or not (0.0 <= descuento_val <= 0.80):
+            raise ParametroServicioInvalidoException("El descuento debe ser un valor finito entre 0% y 80%.", "descuento")
+        if not math.isfinite(impuesto_val) or impuesto_val < 0:
+            raise ParametroServicioInvalidoException("El impuesto debe ser un valor finito no negativo.", "impuesto")
+        if not math.isfinite(recargo_val) or recargo_val < 0:
+            raise ParametroServicioInvalidoException("El recargo debe ser finito no negativo.", "recargo_urgencia")
 
         # Verificar que el servicio esté disponible en el momento de crear la reserva
         servicio.verificar_disponibilidad()
@@ -78,6 +89,8 @@ class Reserva(EntidadBase):
         self._duracion = duracion_val
         self._descuento = descuento_val
         self._impuesto = impuesto_val
+        self._recargo_urgencia = recargo_val
+        self._detalles_servicio: Dict[str, Any] = detalles_servicio
         self._estado = EstadoReserva.PENDIENTE
         self._costo_total = 0.0
         self._fecha_procesamiento: Optional[datetime] = None
@@ -124,12 +137,13 @@ class Reserva(EntidadBase):
                 unidades=self._duracion,
                 descuento=self._descuento,
                 impuesto_iva=self._impuesto,
+                recargo_urgencia=self._recargo_urgencia,
+                **self._detalles_servicio,
             )
         except SoftwareFJException as exc:
             logger_sistema.error(f"Error al calcular costo para reserva {self.id_entidad}: {exc}")
             raise
         else:
-            # Se ejecuta únicamente si el bloque try tuvo éxito
             self._costo_total = total
             logger_sistema.info(f"Costo recalculado con éxito para reserva {self.id_entidad}: ${self._costo_total:,.2f}")
             return self._costo_total
@@ -159,7 +173,6 @@ class Reserva(EntidadBase):
             raise
 
         finally:
-            # Auditoría asegurada en el archivo de logs a nivel INFO
             logger_sistema.info(
                 f"[AUDITORIA FINALLY] Concluyó intento de confirmación en {self.id_entidad}. "
                 f"Estado final: {self._estado.value}. Confirmada={confirmada}"
@@ -192,13 +205,11 @@ class Reserva(EntidadBase):
             raise
 
         else:
-            # La mutación de estado se ejecuta exclusivamente si la validación previa no lanzó excepción
             self._estado = EstadoReserva.CANCELADA
             exito = True
             logger_sistema.info(f"Reserva {self.id_entidad} ha sido cancelada exitosamente.")
 
         finally:
-            # Auditoría asegurada en finally a nivel INFO
             logger_sistema.info(f"[CLEANUP FINALLY] Operación de cancelación concluida en {self.id_entidad} con resultado={exito}")
 
         return exito
@@ -231,7 +242,9 @@ class Reserva(EntidadBase):
     # --- Métodos de la clase abstracta EntidadBase ---
 
     def validar(self) -> bool:
-        return self._cliente.validar() and self._servicio.validar() and self._duracion > 0
+        if not self._cliente.validar() or not self._servicio.validar() or self._duracion <= 0:
+            raise ReservaInvalidaException("La reserva contiene parámetros inválidos.")
+        return True
 
     def obtener_resumen(self) -> str:
         return (

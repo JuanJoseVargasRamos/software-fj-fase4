@@ -22,27 +22,22 @@ class Cliente(EntidadBase):
     con variables privadas y métodos de acceso controlados por validadores.
     """
 
-    # Expresión regular estándar simplificada que admite dominios modernos (.co, .digital, .museum, etc.)
     PATRON_EMAIL = re.compile(r"^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$")
+    PATRON_NOMBRE = re.compile(r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]+$")
 
     def __init__(self, identificacion: str, nombre: str, email: str, telefono: str):
         """Inicializa una instancia de Cliente tras validar previamente la identificación."""
-        # 1. Validación previa de la identificación antes de delegar a la clase base
         id_limpia = self._validar_identificacion(identificacion)
         super().__init__(id_entidad=id_limpia)
 
-        # 2. Atributos fuertemente encapsulados (privados con doble guion bajo)
         self.__identificacion = id_limpia
         self.__nombre = ""
         self.__email = ""
         self.__telefono = ""
 
-        # 3. Asignación controlada a través de propiedades con validadores
         self.nombre = nombre
         self.email = email
         self.telefono = telefono
-
-        # Validación final de integridad
         self.validar()
 
     @staticmethod
@@ -81,8 +76,8 @@ class Cliente(EntidadBase):
         limpio = valor.strip()
         if len(limpio) < 3:
             raise DatosInvalidosException("El nombre debe tener al menos 3 caracteres.", campo="nombre")
-        if not re.match(r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$", limpio):
-            raise DatosInvalidosException("El nombre solo debe contener caracteres alfabéticos.", campo="nombre")
+        if not self.PATRON_NOMBRE.match(limpio):
+            raise DatosInvalidosException("El nombre solo debe contener caracteres alfabéticos, espacios, guiones o apóstrofes.", campo="nombre")
         self.__nombre = limpio
 
     @property

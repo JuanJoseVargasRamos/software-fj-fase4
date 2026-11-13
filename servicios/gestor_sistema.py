@@ -6,14 +6,14 @@ utilizando listas internas para clientes, servicios y reservas.
 Aplica principios de alta cohesión, desacoplamiento y registro exhaustivo de logs.
 """
 
-from typing import List, Optional, Dict
+from typing import List, Dict, Any
 from modelos.cliente import Cliente
 from modelos.servicio import Servicio
 from modelos.reserva import Reserva, EstadoReserva
 from excepciones.excepciones_sistema import (
     ClienteNoEncontradoException,
     ServicioNoEncontradoException,
-    ReservaInvalidaException,
+    ReservaNoEncontradaException,
     OperacionNoPermitidaException,
     SoftwareFJException,
 )
@@ -42,14 +42,12 @@ class SistemaGestionSoftwareFJ:
         """Registra un nuevo cliente validando que no exista duplicidad de identificación."""
         try:
             logger_sistema.info(f"Intentando registrar cliente con ID: {identificacion}")
-            # Validar si ya existe
             for c in self._clientes:
                 if c.identificacion == str(identificacion).strip():
                     raise OperacionNoPermitidaException(
                         f"Ya existe un cliente registrado con la identificación '{identificacion}'."
                     )
 
-            # Instanciación sujeta a validaciones internas de Cliente
             nuevo_cliente = Cliente(identificacion, nombre, email, telefono)
             self._clientes.append(nuevo_cliente)
             logger_sistema.info(f"Cliente registrado con éxito: {nuevo_cliente.obtener_resumen()}")
@@ -82,7 +80,6 @@ class SistemaGestionSoftwareFJ:
             if not isinstance(servicio, Servicio):
                 raise OperacionNoPermitidaException("El objeto a registrar debe derivar de la clase Servicio.")
 
-            # Validar que no se repita el código
             for s in self._servicios:
                 if s.codigo == servicio.codigo:
                     raise OperacionNoPermitidaException(
@@ -121,25 +118,21 @@ class SistemaGestionSoftwareFJ:
         duracion: float,
         descuento: float = 0.0,
         impuesto: float = 0.19,
+        recargo_urgencia: float = 0.0,
+        **detalles_servicio,
     ) -> Reserva:
-        """Crea y registra una reserva vinculando cliente y servicio.
-
-        Maneja validación de dependencias y duplicidades.
-        """
+        """Crea y registra una reserva vinculando cliente y servicio."""
         try:
             id_res_limpio = str(id_reserva).strip().upper()
             logger_sistema.info(f"Creando reserva '{id_res_limpio}' para cliente '{identificacion_cliente}'...")
 
-            # Validar que el ID de reserva sea único
             for r in self._reservas:
                 if r.id_entidad == id_res_limpio:
                     raise OperacionNoPermitidaException(f"Ya existe una reserva con el código '{id_res_limpio}'.")
 
-            # Buscar entidades requeridas (disparan excepciones si no existen)
             cliente = self.buscar_cliente(identificacion_cliente)
             servicio = self.buscar_servicio(codigo_servicio)
 
-            # Instanciar reserva (aplica validaciones de servicio, disponibilidad y duración)
             nueva_reserva = Reserva(
                 id_reserva=id_res_limpio,
                 cliente=cliente,
@@ -147,6 +140,8 @@ class SistemaGestionSoftwareFJ:
                 duracion=duracion,
                 descuento=descuento,
                 impuesto=impuesto,
+                recargo_urgencia=recargo_urgencia,
+                **detalles_servicio,
             )
 
             self._reservas.append(nueva_reserva)
@@ -158,13 +153,13 @@ class SistemaGestionSoftwareFJ:
             raise
 
     def buscar_reserva(self, id_reserva: str) -> Reserva:
-        """Localiza una reserva por su identificador único."""
+        """Localiza una reserva por su identificador único. Lanza ReservaNoEncontradaException si no existe."""
         id_limpio = str(id_reserva).strip().upper()
         for reserva in self._reservas:
             if reserva.id_entidad == id_limpio:
                 return reserva
         logger_sistema.error(f"Búsqueda fallida: Reserva '{id_reserva}' no encontrada.")
-        raise ReservaInvalidaException(f"La reserva con ID '{id_reserva}' no existe en el sistema.")
+        raise ReservaNoEncontradaException(id_limpio)
 
     def confirmar_reserva(self, id_reserva: str) -> bool:
         """Confirma una reserva existente gestionando excepciones."""
@@ -189,7 +184,7 @@ class SistemaGestionSoftwareFJ:
     # Reportes y Estadísticas
     # -----------------------------------------------------------------------
 
-    def generar_reporte_estado(self) -> Dict[str, any]:
+    def generar_reporte_estado(self) -> Dict[str, Any]:
         """Genera un balance del estado actual del sistema."""
         total_facturado = sum(
             r.costo_total for r in self._reservas if r.estado == EstadoReserva.PROCESADA
