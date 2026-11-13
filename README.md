@@ -224,7 +224,7 @@ Conforme a las orientaciones de la Fase 4 y para evidenciar el cumplimiento del 
 | **Rol 2: Especialista en Validación** | `feature/excepciones-personalizadas` | Jerarquía completa de 17 excepciones derivadas de `SoftwareFJException` | **Issue #2** | **[PR #9 (Merged)](https://github.com/JuanJoseVargasRamos/software-fj-fase4/pull/9)** |
 | **Rol 3: Modelado de Dominio** | `feature/modulo-clientes` | Clase `Cliente`, encapsulación estricta y validación regex | **Issue #3** | **[PR #6 (Merged)](https://github.com/JuanJoseVargasRamos/software-fj-fase4/pull/6)** |
 | **Rol 4: Servicios y Polimorfismo** | `feature/servicios-polimorfismo` | Subclases `ReservaSala`, `AlquilerEquipo`, `AsesoriaEspecializada` | **Issue #4** | **[PR #7 (Merged)](https://github.com/JuanJoseVargasRamos/software-fj-fase4/pull/7)** |
-| **Rol 5: Reservas y Control de Calidad** | `feature/reservas-simulaciones` | Ciclo de vida de `Reserva` (`try/else/finally`) y suite de 14 simulaciones | **Issue #5** | **[PR #8 (Merged)](https://github.com/JuanJoseVargasRamos/software-fj-fase4/pull/8)** |
+| **Rol 5: Reservas y Control de Calidad** | `feature/reservas-simulaciones` | Ciclo de vida de `Reserva` (`try/else/finally`) y suite de 16 simulaciones | **Issue #5** | **[PR #8 (Merged)](https://github.com/JuanJoseVargasRamos/software-fj-fase4/pull/8)** |
 
 ---
 

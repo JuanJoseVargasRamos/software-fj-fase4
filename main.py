@@ -29,7 +29,7 @@ def menu_principal():
        SOFTWARE FJ - SISTEMA INTEGRAL DE GESTIÓN (FASE 4)
              UNAD - CURSO DE PROGRAMACIÓN (213023)
 ===================================================================
-1. Ejecutar Batería de 14 Simulaciones Oficiales (Requisito Rúbrica)
+1. Ejecutar Batería de 16 Simulaciones Oficiales (Requisito Rúbrica)
 2. Registrar un Cliente
 3. Consultar y Listar Clientes
 4. Registrar un Servicio Especializado
@@ -72,7 +72,7 @@ def main():
             opcion = input("Seleccione una opción: ").strip()
 
             if opcion == "1":
-                print("\n>>> Ejecutando batería oficial de 14 simulaciones aisladas...")
+                print("\n>>> Ejecutando batería oficial de 16 simulaciones aisladas...")
                 # Pasar None garantiza un sistema fresco e independiente cada vez que se ejecute la opción
                 ejecutar_bateria_simulaciones(None)
                 input("\nPresione [ENTER] para regresar al menú principal...")
