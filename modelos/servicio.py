@@ -84,34 +84,41 @@ class Servicio(EntidadBase):
     ) -> float:
         """Método sobrecargado flexible para cálculo de costos con variantes.
 
-        Soporta cálculo estándar, con descuentos promocionales, impuestos y recargos opcionales.
-        Incluye validación estricta y encadenamiento de excepciones ante anomalías matemáticas.
+        Envuelve conversiones de tipos, validación de rangos y operaciones aritméticas.
+        Aplica Exception Chaining auténtico (raise ... from error_original) cuando ocurre
+        cualquier error de conversión o inconsistencia matemática.
         """
         try:
-            if unidades <= 0:
-                raise ValueError("Las unidades de servicio (horas o días) deben ser mayores a cero.")
-            if descuento < 0 or descuento > 0.80:
-                raise ValueError(f"El porcentaje de descuento debe oscilar entre 0% y 80% (recibido: {descuento*100}%).")
-            if impuesto_iva < 0:
-                raise ValueError("El impuesto no puede ser negativo.")
+            # Conversión dinámica a punto flotante (sujeta a ValueError o TypeError si el dato es corrupto)
+            cant_float = float(unidades)
+            desc_float = float(descuento)
+            iva_float = float(impuesto_iva)
+            recargo_float = float(recargo_urgencia)
 
-            # Invocación polimórfica del método de la subclase
-            subtotal = self.calcular_costo(unidades)
+            if cant_float <= 0:
+                raise ValueError(f"Las unidades de servicio deben ser mayores a cero (recibido: {cant_float}).")
+            if desc_float < 0 or desc_float > 0.80:
+                raise ValueError(f"El porcentaje de descuento debe oscilar entre 0% y 80% (recibido: {desc_float*100}%).")
+            if iva_float < 0:
+                raise ValueError(f"El porcentaje de IVA no puede ser negativo (recibido: {iva_float}).")
 
-            # Aplicación de sobrecargas de descuento, recargo e IVA
-            subtotal_con_descuento = subtotal * (1.0 - descuento)
-            total_con_recargos = subtotal_con_descuento + recargo_urgencia
-            total_final = total_con_recargos * (1.0 + impuesto_iva)
+            # Cálculo polimórfico en la subclase correspondiente
+            subtotal = self.calcular_costo(cant_float)
+
+            # Aplicación de fórmulas financieras con validación de factores
+            factor_descuento = 1.0 - desc_float
+            base_imponible = (subtotal * factor_descuento) + recargo_float
+            total_final = base_imponible * (1.0 + iva_float)
 
             if total_final < 0:
-                raise ArithmeticError("El cálculo final generó un valor monetario negativo.")
+                raise ArithmeticError("El cálculo final generó un valor monetario inconsistente negativo.")
 
             return round(total_final, 2)
 
-        except (ValueError, ArithmeticError) as error_original:
+        except (ValueError, TypeError, ZeroDivisionError, ArithmeticError) as error_original:
             # Demostración explícita de encadenamiento de excepciones (raise ... from ...)
             raise CalculoInconsistenteException(
-                f"Error al calcular tarifa sobrecargada para el servicio {self._codigo}: {str(error_original)}"
+                f"Fallo en cálculo financiero sobrecargado para servicio '{self._codigo}': {str(error_original)}"
             ) from error_original
 
     def validar(self) -> bool:
@@ -157,15 +164,13 @@ class ReservaSala(Servicio):
 
     def calcular_costo(self, cantidad_unidades: float, **kwargs) -> float:
         """Sobrescribe el cálculo: Tarifa por horas + adicionales de proyector/catering."""
-        horas = cantidad_unidades
+        horas = float(cantidad_unidades)
         if horas <= 0:
             raise ParametroServicioInvalidoException("La duración en horas debe ser positiva.", "horas")
 
         costo = self._tarifa_base * horas
-        # Costo adicional si se solicita proyector de alta gama
         if kwargs.get("proyector_4k", False):
             costo += 25000.0 * horas
-        # Costo por servicio de café y catering por persona
         asistentes = kwargs.get("asistentes", 0)
         if asistentes > 0 and kwargs.get("catering", False):
             costo += asistentes * 15000.0
@@ -204,14 +209,13 @@ class AlquilerEquipo(Servicio):
 
     def calcular_costo(self, cantidad_unidades: float, **kwargs) -> float:
         """Sobrescribe el cálculo: Tarifa por días + póliza de seguro opcional."""
-        dias = cantidad_unidades
+        dias = float(cantidad_unidades)
         if dias <= 0:
             raise ParametroServicioInvalidoException("Los días de alquiler deben ser mayores a cero.", "dias")
         if dias > 30:
             raise ParametroServicioInvalidoException("El alquiler no puede superar 30 días continuos.", "dias")
 
         costo = self._tarifa_base * dias
-        # Seguro contra todo riesgo si es solicitado (10% del total base)
         if kwargs.get("seguro_riesgo", True):
             costo += (self._tarifa_base * 0.10) * dias
 
@@ -258,7 +262,7 @@ class AsesoriaEspecializada(Servicio):
 
     def calcular_costo(self, cantidad_unidades: float, **kwargs) -> float:
         """Sobrescribe el cálculo: Horas * Tarifa Base * Multiplicador por seniority."""
-        horas = cantidad_unidades
+        horas = float(cantidad_unidades)
         if horas <= 0:
             raise ParametroServicioInvalidoException("Las horas de asesoría deben ser mayores a cero.", "horas")
         if horas > 40:
@@ -267,9 +271,8 @@ class AsesoriaEspecializada(Servicio):
         multiplicador = self.FACTORES_NIVEL[self.nivel_consultor]
         costo = (self._tarifa_base * multiplicador) * horas
 
-        # Recargo si la asesoría es presencial
         if kwargs.get("presencial", False):
-            costo += 50000.0  # Viáticos de transporte y logística
+            costo += 50000.0
 
         return round(costo, 2)
 

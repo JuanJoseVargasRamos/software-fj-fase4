@@ -120,7 +120,7 @@ class Reserva(EntidadBase):
         else:
             # Se ejecuta únicamente si el bloque try tuvo éxito
             self._costo_total = total
-            logger_sistema.debug(f"Costo recalculado con éxito para reserva {self.id_entidad}: ${self._costo_total:,.2f}")
+            logger_sistema.info(f"Costo recalculado con éxito para reserva {self.id_entidad}: ${self._costo_total:,.2f}")
             return self._costo_total
 
     def confirmar(self) -> bool:
@@ -138,7 +138,6 @@ class Reserva(EntidadBase):
                     accion_intentada="CONFIRMAR",
                 )
 
-            # Simular bloqueo de recursos
             recurso_bloqueado = True
             self._estado = EstadoReserva.CONFIRMADA
             logger_sistema.info(f"Reserva {self.id_entidad} confirmada satisfactoriamente.")
@@ -149,16 +148,16 @@ class Reserva(EntidadBase):
             raise
 
         finally:
-            # try/finally: Garantiza que la auditoría o liberación siempre se ejecute
-            logger_sistema.debug(
-                f"[AUDITORIA FINALLY] Finalizó intento de confirmación en reserva {self.id_entidad}. "
+            # try/finally: Auditoría garantizada en el archivo de log (nivel INFO)
+            logger_sistema.info(
+                f"[AUDITORIA FINALLY] Concluyó intento de confirmación en reserva {self.id_entidad}. "
                 f"Estado final: {self._estado.value}. Recurso procesado={recurso_bloqueado}"
             )
 
     def cancelar(self, motivo: str = "Solicitud del cliente") -> bool:
         """Cancela una reserva siempre que no se encuentre ya PROCESADA o CANCELADA.
 
-        Demuestra try/except/else/finally combinado.
+        Demuestra try/except/else/finally combinado con asignación de estado exclusiva en el bloque else.
         """
         exito = False
         try:
@@ -176,19 +175,19 @@ class Reserva(EntidadBase):
                     accion_intentada="CANCELAR (La reserva ya se encontraba cancelada previamente)",
                 )
 
-            self._estado = EstadoReserva.CANCELADA
-
         except EstadoReservaInvalidoException as exc:
             logger_sistema.error(f"[ERROR CANCELACIÓN] {exc}")
             raise
 
         else:
-            # Ejecutado sólo cuando no ocurrió ninguna excepción
+            # La mutación de estado ocurre exclusivamente si la validación en try fue exitosa
+            self._estado = EstadoReserva.CANCELADA
             exito = True
             logger_sistema.info(f"Reserva {self.id_entidad} ha sido cancelada exitosamente.")
 
         finally:
-            logger_sistema.debug(f"[CLEANUP FINALLY] Operación de cancelación concluida con resultado={exito}")
+            # Auditoría asegurada en finally a nivel INFO
+            logger_sistema.info(f"[CLEANUP FINALLY] Operación de cancelación concluida en {self.id_entidad} con resultado={exito}")
 
         return exito
 

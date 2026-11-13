@@ -22,28 +22,40 @@ class Cliente(EntidadBase):
     con variables privadas y métodos de acceso controlados por validadores.
     """
 
-    # Expresión regular estándar para validación de emails
-    PATRON_EMAIL = re.compile(r"^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$")
+    # Expresión regular estándar simplificada que admite dominios modernos (.co, .digital, .museum, etc.)
+    PATRON_EMAIL = re.compile(r"^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$")
 
     def __init__(self, identificacion: str, nombre: str, email: str, telefono: str):
-        """Inicializa una instancia de Cliente tras superar las validaciones."""
-        # Se invoca el constructor de la clase base abstracta
-        super().__init__(id_entidad=identificacion)
+        """Inicializa una instancia de Cliente tras validar previamente la identificación."""
+        # 1. Validación previa de la identificación antes de delegar a la clase base
+        id_limpia = self._validar_identificacion(identificacion)
+        super().__init__(id_entidad=id_limpia)
 
-        # Atributos fuertemente encapsulados (privados con doble guion bajo)
-        self.__identificacion = ""
+        # 2. Atributos fuertemente encapsulados (privados con doble guion bajo)
+        self.__identificacion = id_limpia
         self.__nombre = ""
         self.__email = ""
         self.__telefono = ""
 
-        # Asignación controlada a través de las propiedades con validadores
-        self.identificacion = identificacion
+        # 3. Asignación controlada a través de propiedades con validadores
         self.nombre = nombre
         self.email = email
         self.telefono = telefono
 
-        # Validación final de coherencia
+        # Validación final de integridad
         self.validar()
+
+    @staticmethod
+    def _validar_identificacion(valor: str) -> str:
+        """Valida que la cédula sea numérica y tenga entre 6 y 12 dígitos."""
+        if not valor or not isinstance(valor, str):
+            raise IdentificacionInvalidaException("La identificación no puede ser nula ni vacía.", str(valor))
+        limpio = valor.strip()
+        if not limpio.isdigit() or len(limpio) < 6 or len(limpio) > 12:
+            raise IdentificacionInvalidaException(
+                "La identificación debe ser numérica y contener entre 6 y 12 dígitos.", limpio
+            )
+        return limpio
 
     # --- Getters y Setters encapsulados ---
 
@@ -54,15 +66,8 @@ class Cliente(EntidadBase):
 
     @identificacion.setter
     def identificacion(self, valor: str) -> None:
-        if not valor or not isinstance(valor, str):
-            raise IdentificacionInvalidaException("La identificación no puede ser nula ni vacía.", str(valor))
-        limpio = valor.strip()
-        if not limpio.isdigit() or len(limpio) < 6 or len(limpio) > 12:
-            raise IdentificacionInvalidaException(
-                "La identificación debe ser numérica y contener entre 6 y 12 dígitos.", limpio
-            )
-        self.__identificacion = limpio
-        self._id_entidad = limpio
+        self.__identificacion = self._validar_identificacion(valor)
+        self._id_entidad = self.__identificacion
 
     @property
     def nombre(self) -> str:
@@ -76,7 +81,6 @@ class Cliente(EntidadBase):
         limpio = valor.strip()
         if len(limpio) < 3:
             raise DatosInvalidosException("El nombre debe tener al menos 3 caracteres.", campo="nombre")
-        # Verificar que solo contenga letras y espacios
         if not re.match(r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$", limpio):
             raise DatosInvalidosException("El nombre solo debe contener caracteres alfabéticos.", campo="nombre")
         self.__nombre = limpio
@@ -93,7 +97,7 @@ class Cliente(EntidadBase):
         limpio = valor.strip().lower()
         if not self.PATRON_EMAIL.match(limpio):
             raise EmailInvalidoException(
-                "El formato de correo electrónico no cumple con la estructura estándar (ej: usuario@dominio.com).",
+                "El formato de correo electrónico debe ser válido (ejemplo: usuario@dominio.com).",
                 limpio,
             )
         self.__email = limpio
@@ -114,7 +118,7 @@ class Cliente(EntidadBase):
             )
         self.__telefono = limpio
 
-    # --- Métodos requeridos de la clase abstracta EntidadBase ---
+    # --- Métodos de la clase abstracta EntidadBase ---
 
     def validar(self) -> bool:
         """Valida que todos los atributos privados posean datos consistentes."""
