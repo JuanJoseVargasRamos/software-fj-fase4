@@ -92,10 +92,20 @@ class Servicio(EntidadBase):
         recargo_urgencia: float = 0.0,
         **kwargs,
     ) -> float:
-        """Método sobrecargado flexible para cálculo de costos con variantes.
+        """Método sobrecargado flexible para cálculo de costos con variantes financieras.
 
-        Envuelve conversiones de tipos, validación estricta de números finitos (evita NaN/Inf)
-        y operaciones aritméticas. Aplica Exception Chaining auténtico (raise ... from error_original).
+        Aplica validación estricta de números finitos con math.isfinite() y encadenamiento
+        de excepciones (raise ... from error_original).
+
+        Parámetros:
+            unidades (float): Cantidad de unidades/horas/días del servicio (debe ser > 0).
+            descuento (float): Porcentaje de descuento comercial aplicable (0.0 a 0.80).
+            impuesto_iva (float): Tasa impositiva de IVA (por defecto 0.19 correspondiente al 19%).
+            recargo_urgencia (float): Monto monetario fijo en pesos sumado al subtotal con descuento.
+            **kwargs: Argumentos variables para reglas de negocio específicas de subclases.
+
+        Retorna:
+            float: Costo total liquidado redondeado a dos cifras decimales.
         """
         try:
             cant_float = float(unidades)
