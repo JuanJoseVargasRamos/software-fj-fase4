@@ -141,3 +141,61 @@
 2026-11-12 23:29:57 | INFO     | [simulaciones:ejecutar_bateria_simulaciones:268] | Simulacion 11 completada exitosamente: [ERR-ESTADO-TRANSICION-ILEGAL] No es posible ejecutar 'CANCELAR (Una reserva ya completada no admite cancelación)' en la reserva 'RES-2026-001' con estado actual 'PROCESADA'
 2026-11-12 23:29:57 | INFO     | [simulaciones:ejecutar_bateria_simulaciones:283] | Simulacion 12 completada exitosamente (encadenamiento verificado): [ERR-CALCULO-INCONSISTENTE] Fallo en cálculo financiero sobrecargado para servicio 'EQ-SRV-01': El porcentaje de descuento debe oscilar entre 0% y 80% (recibido: 150.0%). -> Causa: El porcentaje de descuento debe oscilar entre 0% y 80% (recibido: 150.0%).
 2026-11-12 23:29:57 | INFO     | [simulaciones:ejecutar_bateria_simulaciones:300] | === FIN DE LA BATERIA OFICIAL DE SIMULACIONES FASE 4 ===
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:__init__:35] | Sistema inicializado con éxito para 'Software FJ - Plataforma de Servicios'.
+2026-11-12 23:40:21 | INFO     | [simulaciones:ejecutar_bateria_simulaciones:269] | === INICIO DE LA BATERIA OFICIAL DE 14 SIMULACIONES FASE 4 ===
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_cliente:44] | Intentando registrar cliente con ID: 1010203040
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_cliente:55] | Cliente registrado con éxito: Cliente: Carlos Perez Gomez | ID: 1010203040 | Tel: 3001234567 | Email: carlos.perez@empresa.com
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_cliente:44] | Intentando registrar cliente con ID: 1098765432
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_cliente:55] | Cliente registrado con éxito: Cliente: Maria Lopez Duque | ID: 1098765432 | Tel: 3119876543 | Email: maria.lopez@startup.co
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_cliente:44] | Intentando registrar cliente con ID: 1020304050
+2026-11-12 23:40:21 | WARNING  | [gestor_sistema:registrar_cliente:59] | Rechazo en registro de cliente (1020304050): [ERR-EMAIL-INVALIDO] Email inválido 'juan_sin_arroba.com': El formato de correo electrónico debe ser válido (ejemplo: usuario@dominio.com).
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_02_email_invalido:81] | Simulación 2 completada exitosamente (excepción controlada): [ERR-EMAIL-INVALIDO] Email inválido 'juan_sin_arroba.com': El formato de correo electrónico debe ser válido (ejemplo: usuario@dominio.com).
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_cliente:44] | Intentando registrar cliente con ID: 1030405060
+2026-11-12 23:40:21 | WARNING  | [gestor_sistema:registrar_cliente:59] | Rechazo en registro de cliente (1030405060): [ERR-TEL-INVALIDO] Teléfono inválido '300ABC123': El teléfono debe contener únicamente dígitos numéricos (entre 7 y 10 dígitos).
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_03_telefono_invalido:93] | Simulación 3 completada exitosamente (excepción controlada): [ERR-TEL-INVALIDO] Teléfono inválido '300ABC123': El teléfono debe contener únicamente dígitos numéricos (entre 7 y 10 dígitos).
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_cliente:44] | Intentando registrar cliente con ID: 1010203040
+2026-11-12 23:40:21 | WARNING  | [gestor_sistema:registrar_cliente:59] | Rechazo en registro de cliente (1010203040): [ERR-OPERACION-NO-PERMITIDA] Ya existe un cliente registrado con la identificación '1010203040'.
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_04_cedula_duplicada:104] | Simulación 4 completada exitosamente (duplicado bloqueado): [ERR-OPERACION-NO-PERMITIDA] Ya existe un cliente registrado con la identificación '1010203040'.
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_servicio:93] | Servicio incorporado al catálogo: [SALA-101] Sala de Juntas Ejecutiva VIP | Tarifa Base: $80,000.00 | Estado: DISPONIBLE
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_servicio:93] | Servicio incorporado al catálogo: [EQ-SRV-01] Servidor Blade Dell PowerEdge | Tarifa Base: $250,000.00 | Estado: DISPONIBLE
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_servicio:93] | Servicio incorporado al catálogo: [ASE-IA-03] Consultoría en Inteligencia Artificial y MLOps | Tarifa Base: $120,000.00 | Estado: DISPONIBLE
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:registrar_servicio:93] | Servicio incorporado al catálogo: [SALA-MANT] Auditorio Central (Mantenimiento) | Tarifa Base: $150,000.00 | Estado: NO DISPONIBLE
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_06_servicio_parametro_invalido:132] | Simulación 6 completada exitosamente: [ERR-PARAM-SERVICIO] Parámetro de servicio inválido (capacidad_maxima): La capacidad máxima debe ser mayor a cero.
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:crear_reserva:131] | Creando reserva 'RES-2026-001' para cliente '1010203040'...
+2026-11-12 23:40:21 | INFO     | [reserva:recalcular_costo:134] | Costo recalculado con éxito para reserva RES-2026-001: $1,927,800.00
+2026-11-12 23:40:21 | INFO     | [reserva:__init__:88] | [RESERVA CREADA] Reserva RES-2026-001 creada en estado PENDIENTE para Carlos Perez Gomez con servicio ASE-IA-03. Total estimado: $1,927,800.00
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:crear_reserva:153] | Reserva registrada en el sistema: RESERVA #RES-2026-001 | Cliente: Carlos Perez Gomez | Servicio: Consultoría en Inteligencia Artificial y MLOps | Duración: 10.0 | Total: $1,927,800.00 | Estado: PENDIENTE
+2026-11-12 23:40:21 | INFO     | [reserva:confirmar:144] | Iniciando proceso de confirmación de reserva RES-2026-001...
+2026-11-12 23:40:21 | INFO     | [reserva:confirmar:154] | Reserva RES-2026-001 confirmada satisfactoriamente.
+2026-11-12 23:40:21 | INFO     | [reserva:confirmar:163] | [AUDITORIA FINALLY] Concluyó intento de confirmación en RES-2026-001. Estado final: CONFIRMADA. Confirmada=True
+2026-11-12 23:40:21 | INFO     | [reserva:procesar:212] | Procesando y facturando reserva RES-2026-001...
+2026-11-12 23:40:21 | INFO     | [reserva:procesar:222] | [RESERVA PROCESADA] Reserva RES-2026-001 procesada con éxito. Total facturado: $1,927,800.00
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:crear_reserva:131] | Creando reserva 'RES-2026-002' para cliente '1098765432'...
+2026-11-12 23:40:21 | WARNING  | [gestor_sistema:crear_reserva:157] | Rechazo en creación de reserva 'RES-2026-002': [ERR-SERVICIO-NO-DISPONIBLE] El servicio 'SALA-MANT' no se encuentra disponible: El servicio 'Auditorio Central (Mantenimiento)' se encuentra temporalmente inactivo o reservado.
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_08_servicio_no_disponible:167] | Simulación 8 completada exitosamente: [ERR-SERVICIO-NO-DISPONIBLE] El servicio 'SALA-MANT' no se encuentra disponible: El servicio 'Auditorio Central (Mantenimiento)' se encuentra temporalmente inactivo o reservado.
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:crear_reserva:131] | Creando reserva 'RES-2026-003' para cliente '999999999'...
+2026-11-12 23:40:21 | ERROR    | [gestor_sistema:buscar_cliente:68] | Búsqueda fallida: Cliente con cédula '999999999' no encontrado.
+2026-11-12 23:40:21 | WARNING  | [gestor_sistema:crear_reserva:157] | Rechazo en creación de reserva 'RES-2026-003': [ERR-CLIENTE-NO-HALLADO] Cliente con identificación '999999999' no existe en el sistema.
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_09_cliente_inexistente:184] | Simulación 9 completada exitosamente: [ERR-CLIENTE-NO-HALLADO] Cliente con identificación '999999999' no existe en el sistema.
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_10_aforo_excedido:198] | Simulación 10 completada exitosamente: [ERR-CAPACIDAD-EXCEDIDA] Capacidad máxima excedida. Máximo permitido: 12, Solicitados: 45
+2026-11-12 23:40:21 | INFO     | [reserva:cancelar:176] | Procesando cancelación de reserva RES-2026-001 por motivo: 'Reembolso extemporáneo'
+2026-11-12 23:40:21 | ERROR    | [reserva:cancelar:191] | [ERROR CANCELACIÓN] [ERR-ESTADO-TRANSICION-ILEGAL] No es posible ejecutar 'CANCELAR (Una reserva ya completada y facturada no admite cancelación)' en la reserva 'RES-2026-001' con estado actual 'PROCESADA'
+2026-11-12 23:40:21 | INFO     | [reserva:cancelar:202] | [CLEANUP FINALLY] Operación de cancelación concluida en RES-2026-001 con resultado=False
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_11_cancelacion_ilegal_procesada:211] | Simulación 11 completada exitosamente: [ERR-ESTADO-TRANSICION-ILEGAL] No es posible ejecutar 'CANCELAR (Una reserva ya completada y facturada no admite cancelación)' en la reserva 'RES-2026-001' con estado actual 'PROCESADA'
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:crear_reserva:131] | Creando reserva 'RES-2026-CANCEL' para cliente '1010203040'...
+2026-11-12 23:40:21 | INFO     | [reserva:recalcular_costo:134] | Costo recalculado con éxito para reserva RES-2026-CANCEL: $981,750.00
+2026-11-12 23:40:21 | INFO     | [reserva:__init__:88] | [RESERVA CREADA] Reserva RES-2026-CANCEL creada en estado PENDIENTE para Carlos Perez Gomez con servicio EQ-SRV-01. Total estimado: $981,750.00
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:crear_reserva:153] | Reserva registrada en el sistema: RESERVA #RES-2026-CANCEL | Cliente: Carlos Perez Gomez | Servicio: Servidor Blade Dell PowerEdge | Duración: 3.0 | Total: $981,750.00 | Estado: PENDIENTE
+2026-11-12 23:40:21 | INFO     | [reserva:cancelar:176] | Procesando cancelación de reserva RES-2026-CANCEL por motivo: 'Cliente cancela oportunamente dentro del plazo'
+2026-11-12 23:40:21 | INFO     | [reserva:cancelar:198] | Reserva RES-2026-CANCEL ha sido cancelada exitosamente.
+2026-11-12 23:40:21 | INFO     | [reserva:cancelar:202] | [CLEANUP FINALLY] Operación de cancelación concluida en RES-2026-CANCEL con resultado=True
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_12_cancelacion_exitosa_camino_else:226] | Simulación 12 ejecutada con éxito: mutación de estado en else demostrada.
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:crear_reserva:131] | Creando reserva 'RES-2026-PEND' para cliente '1098765432'...
+2026-11-12 23:40:21 | INFO     | [reserva:recalcular_costo:134] | Costo recalculado con éxito para reserva RES-2026-PEND: $190,400.00
+2026-11-12 23:40:21 | INFO     | [reserva:__init__:88] | [RESERVA CREADA] Reserva RES-2026-PEND creada en estado PENDIENTE para Maria Lopez Duque con servicio SALA-101. Total estimado: $190,400.00
+2026-11-12 23:40:21 | INFO     | [gestor_sistema:crear_reserva:153] | Reserva registrada en el sistema: RESERVA #RES-2026-PEND | Cliente: Maria Lopez Duque | Servicio: Sala de Juntas Ejecutiva VIP | Duración: 2.0 | Total: $190,400.00 | Estado: PENDIENTE
+2026-11-12 23:40:21 | INFO     | [reserva:procesar:212] | Procesando y facturando reserva RES-2026-PEND...
+2026-11-12 23:40:21 | ERROR    | [reserva:procesar:228] | [FALLO PROCESAMIENTO] Reserva RES-2026-PEND: [ERR-ESTADO-TRANSICION-ILEGAL] No es posible ejecutar 'PROCESAR (Se requiere confirmación previa en estado CONFIRMADA)' en la reserva 'RES-2026-PEND' con estado actual 'PENDIENTE'
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_13_transiciones_estados_invalidas:243] | Simulación 13 completada exitosamente: [ERR-ESTADO-TRANSICION-ILEGAL] No es posible ejecutar 'PROCESAR (Se requiere confirmación previa en estado CONFIRMADA)' en la reserva 'RES-2026-PEND' con estado actual 'PENDIENTE'
+2026-11-12 23:40:21 | INFO     | [simulaciones:sim_14_encadenamiento_excepciones_calculo:256] | Simulación 14 completada exitosamente con encadenamiento: [ERR-CALCULO-INCONSISTENTE] Fallo en cálculo financiero sobrecargado para servicio 'EQ-SRV-01': El porcentaje de descuento debe oscilar entre 0% y 80% (recibido: 150.0%). -> Causa: El porcentaje de descuento debe oscilar entre 0% y 80% (recibido: 150.0%).
+2026-11-12 23:40:21 | INFO     | [simulaciones:ejecutar_bateria_simulaciones:308] | === FIN DE LA BATERIA: 14/14 simulaciones controladas exitosamente ===

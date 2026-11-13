@@ -53,10 +53,21 @@ class Reserva(EntidadBase):
         super().__init__(id_entidad=id_reserva)
 
         if not isinstance(cliente, Cliente):
-            raise ReservaInvalidaException("El cliente asociado a la reserva debe ser una instancia válida de Cliente.")
+            raise ReservaInvalidaException("El cliente asociado debe ser una instancia válida de Cliente.")
         if not isinstance(servicio, Servicio):
             raise ReservaInvalidaException("El servicio debe ser una subclase válida de Servicio.")
-        if duracion <= 0:
+
+        try:
+            duracion_val = float(duracion)
+            descuento_val = float(descuento)
+            impuesto_val = float(impuesto)
+        except (ValueError, TypeError) as err_conversion:
+            raise ParametroServicioInvalidoException(
+                f"Parámetros numéricos de reserva corruptos o no convertibles: {err_conversion}",
+                parametro="duracion/descuento/impuesto"
+            ) from err_conversion
+
+        if duracion_val <= 0:
             raise ParametroServicioInvalidoException("La duración de la reserva debe ser mayor a cero.", "duracion")
 
         # Verificar que el servicio esté disponible en el momento de crear la reserva
@@ -64,9 +75,9 @@ class Reserva(EntidadBase):
 
         self._cliente = cliente
         self._servicio = servicio
-        self._duracion = float(duracion)
-        self._descuento = float(descuento)
-        self._impuesto = float(impuesto)
+        self._duracion = duracion_val
+        self._descuento = descuento_val
+        self._impuesto = impuesto_val
         self._estado = EstadoReserva.PENDIENTE
         self._costo_total = 0.0
         self._fecha_procesamiento: Optional[datetime] = None
@@ -75,7 +86,7 @@ class Reserva(EntidadBase):
         self.recalcular_costo()
 
         logger_sistema.info(
-            f"[RESERVA CREADA] Reserva {self.id_entidad} creada en estado PENDIENTE para cliente {self._cliente.nombre} "
+            f"[RESERVA CREADA] Reserva {self.id_entidad} creada en estado PENDIENTE para {self._cliente.nombre} "
             f"con servicio {self._servicio.codigo}. Total estimado: ${self._costo_total:,.2f}"
         )
 
@@ -128,18 +139,18 @@ class Reserva(EntidadBase):
 
         Demuestra el uso de validación de estado y try/except/finally.
         """
-        recurso_bloqueado = False
+        confirmada = False
         try:
             logger_sistema.info(f"Iniciando proceso de confirmación de reserva {self.id_entidad}...")
             if self._estado != EstadoReserva.PENDIENTE:
                 raise EstadoReservaInvalidoException(
                     id_reserva=self.id_entidad,
                     estado_actual=self._estado.value,
-                    accion_intentada="CONFIRMAR",
+                    accion_intentada="CONFIRMAR (Requiere estado PENDIENTE)",
                 )
 
-            recurso_bloqueado = True
             self._estado = EstadoReserva.CONFIRMADA
+            confirmada = True
             logger_sistema.info(f"Reserva {self.id_entidad} confirmada satisfactoriamente.")
             return True
 
@@ -148,16 +159,17 @@ class Reserva(EntidadBase):
             raise
 
         finally:
-            # try/finally: Auditoría garantizada en el archivo de log (nivel INFO)
+            # Auditoría asegurada en el archivo de logs a nivel INFO
             logger_sistema.info(
-                f"[AUDITORIA FINALLY] Concluyó intento de confirmación en reserva {self.id_entidad}. "
-                f"Estado final: {self._estado.value}. Recurso procesado={recurso_bloqueado}"
+                f"[AUDITORIA FINALLY] Concluyó intento de confirmación en {self.id_entidad}. "
+                f"Estado final: {self._estado.value}. Confirmada={confirmada}"
             )
 
     def cancelar(self, motivo: str = "Solicitud del cliente") -> bool:
         """Cancela una reserva siempre que no se encuentre ya PROCESADA o CANCELADA.
 
-        Demuestra try/except/else/finally combinado con asignación de estado exclusiva en el bloque else.
+        Demuestra try/except/else/finally combinado.
+        La mutación de estado ocurre estrictamente en el bloque else.
         """
         exito = False
         try:
@@ -166,7 +178,7 @@ class Reserva(EntidadBase):
                 raise EstadoReservaInvalidoException(
                     id_reserva=self.id_entidad,
                     estado_actual=self._estado.value,
-                    accion_intentada="CANCELAR (Una reserva ya completada no admite cancelación)",
+                    accion_intentada="CANCELAR (Una reserva ya completada y facturada no admite cancelación)",
                 )
             if self._estado == EstadoReserva.CANCELADA:
                 raise EstadoReservaInvalidoException(
@@ -180,7 +192,7 @@ class Reserva(EntidadBase):
             raise
 
         else:
-            # La mutación de estado ocurre exclusivamente si la validación en try fue exitosa
+            # La mutación de estado se ejecuta exclusivamente si la validación previa no lanzó excepción
             self._estado = EstadoReserva.CANCELADA
             exito = True
             logger_sistema.info(f"Reserva {self.id_entidad} ha sido cancelada exitosamente.")
@@ -202,7 +214,7 @@ class Reserva(EntidadBase):
                 raise EstadoReservaInvalidoException(
                     id_reserva=self.id_entidad,
                     estado_actual=self._estado.value,
-                    accion_intentada="PROCESAR (Se requiere confirmación previa)",
+                    accion_intentada="PROCESAR (Se requiere confirmación previa en estado CONFIRMADA)",
                 )
 
             self._estado = EstadoReserva.PROCESADA
