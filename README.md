@@ -224,7 +224,7 @@ El script `simulaciones.py` ejecuta automáticamente los siguientes casos de pru
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/TU_GRUPO/software-fj-fase4.git
+git clone https://github.com/JuanJoseVargasRamos/software-fj-fase4.git
 cd software-fj-fase4
 ```
 
