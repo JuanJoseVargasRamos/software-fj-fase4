@@ -22,7 +22,7 @@ La solución cumple rigurosamente con los 4 criterios de la rúbrica oficial (15
 - **Estructuras de control:** `try/except`, `try/except/else`, `try/finally` y **encadenamiento de excepciones** (`raise ... from error_original`).
 - **Validación rigurosa de números finitos:** Blindaje contra inyecciones `float('nan')` o `float('inf')` mediante `math.isfinite()`.
 - **Sistema centralizado de Logging:** Con rotación automática de archivos (`RotatingFileHandler` a 1 MB y 3 respaldos) en `logs/software_fj.log` y `logs/software_fj_ejemplo.log`.
-- **Suite de 14 simulaciones automáticas** aisladas con red de seguridad que garantizan que el sistema **nunca se interrumpe ni colapsa**.
+- **Suite de 16 simulaciones automáticas oficiales** con aserciones estrictas (`esperar_excepcion`), previniendo falsos positivos y garantizando que el sistema **nunca se interrumpe ni colapsa**.
 - **Gestión profesional en GitHub:** Implementada mediante Git Flow separando responsabilidades en ramas temáticas (`feature/*`), Pull Requests fusionados (**PR #6, PR #7, PR #8 y PR #9**) e **Issues #1 al #5** asignados y cerrados.
 
 ---
@@ -58,7 +58,7 @@ software_fj/
 ├── documentacion/
 │   └── Fase_4_Juana_Software_FJ_Actualizado.docx # Documento formal de entrega
 │
-├── simulaciones.py               # Batería oficial de 14 simulaciones con runner aislado
+├── simulaciones.py               # Batería oficial de 16 simulaciones con aserciones estrictas (esperar_excepcion)
 ├── main.py                       # Interfaz de consola interactiva blindada contra EOFError
 ├── README.md                     # Documentación completa y guía de GitHub
 └── .gitignore
@@ -228,9 +228,9 @@ Conforme a las orientaciones de la Fase 4 y para evidenciar el cumplimiento del 
 
 ---
 
-## 🧪 Batería de 14 Simulaciones Implementadas
+## 🧪 Batería de 16 Simulaciones Oficiales Implementadas
 
-El script `simulaciones.py` ejecuta automáticamente los siguientes 14 casos de prueba mediante un runner modular con red de seguridad:
+El script `simulaciones.py` ejecuta automáticamente los siguientes 16 casos de prueba mediante un runner modular con aserciones estrictas (`esperar_excepcion`), asegurando que las excepciones se disparen efectivamente y descartando cualquier falso positivo:
 
 | # | Tipo | Escenario Evaluado | Excepción Gestionada | Mecanismo Demostrado |
 |---|------|---------------------|-----------------------|----------------------|
@@ -248,6 +248,8 @@ El script `simulaciones.py` ejecuta automáticamente los siguientes 14 casos de 
 | **12** | Válida | Cancelación exitosa evidenciando el bloque `else` | Ninguna | **Mutación estricta de estado en bloque `else`** |
 | **13** | Inválida | Transición ilegal: procesar reserva en estado PENDIENTE | `EstadoReservaInvalidoException` | Transición de estados finitos |
 | **14** | Inválida | Cálculo sobrecargado con descuento mayor al 80% | `CalculoInconsistenteException` | **Encadenamiento de excepciones (`raise ... from`)** |
+| **15** | Inválida | Búsqueda relacional de reserva inexistente | `ReservaNoEncontradaException` | Búsqueda y control en colecciones |
+| **16** | Inválida | Blindaje matemático contra valor `float('nan')` | `CalculoInconsistenteException` | **Validación estricta con `math.isfinite` y encadenamiento** |
 
 ---
 
