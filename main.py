@@ -7,8 +7,11 @@ en tiempo real con manejo integral de excepciones y logging continuo.
 Totalmente blindado contra EOFError, entradas NaN/Inf y fallos inesperados.
 """
 
+# sys permite modificar la ruta de importación
 import sys
+# math se usa para validar valores finitos
 import math
+# Path permite construir la ruta del archivo de logs
 from pathlib import Path
 
 # Configurar el path del proyecto para importaciones directas
@@ -16,6 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
+# Importa el logger, las excepciones, los servicios, el gestor y las simulaciones
 from configuracion.logger_config import logger_sistema
 from excepciones.excepciones_sistema import SoftwareFJException
 from modelos.servicio import ReservaSala, AlquilerEquipo, AsesoriaEspecializada
@@ -23,6 +27,7 @@ from servicios.gestor_sistema import SistemaGestionSoftwareFJ
 from simulaciones import ejecutar_bateria_simulaciones
 
 
+# Muestra el menú de opciones en consola
 def menu_principal():
     print("""
 ===================================================================
@@ -44,8 +49,10 @@ def menu_principal():
 -------------------------------------------------------------------""")
 
 
+# Carga datos de ejemplo al iniciar
 def precargar_datos_demo(sistema: SistemaGestionSoftwareFJ):
     """Carga datos iniciales para facilitar la interacción manual del usuario."""
+    # try/except para que un error en la precarga no detenga la aplicación
     try:
         sistema.registrar_cliente("1001001001", "Ana Gomez Restrepo", "ana.gomez@gmail.com", "3104567890")
         sistema.registrar_servicio(
@@ -58,27 +65,36 @@ def precargar_datos_demo(sistema: SistemaGestionSoftwareFJ):
             AsesoriaEspecializada("ASE-CYBER", "Consultoría en Ciberseguridad", 150000.0, "Seguridad Ofensiva", "SENIOR")
         )
         logger_sistema.info("Precarga inicial de datos demo realizada con éxito.")
+    # Si algo falla, solo se registra una advertencia en el log
     except Exception as e:
         logger_sistema.warning(f"Aviso durante precarga inicial: {e}")
 
 
+# Función principal del programa
 def main():
+    # Crea el gestor del sistema
     sistema = SistemaGestionSoftwareFJ("Software FJ S.A.S.")
     precargar_datos_demo(sistema)
 
+    # Ciclo infinito: el menú se repite hasta que el usuario elija salir
     while True:
+        # try/except general: evita que la aplicación se cierre ante cualquier error
         try:
             menu_principal()
+            # Lee la opción elegida por el usuario
             opcion = input("Seleccione una opción: ").strip()
 
+            # Opción 1: ejecuta las 16 simulaciones
             if opcion == "1":
                 print("\n>>> Ejecutando batería oficial de 16 simulaciones aisladas...")
                 # Pasar None garantiza un sistema fresco e independiente cada vez que se ejecute la opción
                 ejecutar_bateria_simulaciones(None)
                 input("\nPresione [ENTER] para regresar al menú principal...")
 
+            # Opción 2: registrar un cliente
             elif opcion == "2":
                 print("\n--- REGISTRAR NUEVO CLIENTE ---")
+                # try/except: si los datos son inválidos se muestra el aviso y se continúa
                 try:
                     id_cliente = input("Cédula o Identificación: ").strip()
                     nombre = input("Nombre completo: ").strip()
@@ -86,9 +102,11 @@ def main():
                     tel = input("Número de teléfono: ").strip()
                     cliente = sistema.registrar_cliente(id_cliente, nombre, email, tel)
                     print(f"[OK] Cliente registrado satisfactoriamente: {cliente}")
+                # Captura las excepciones personalizadas y muestra el mensaje
                 except SoftwareFJException as err:
                     print(f"[AVISO DEL SISTEMA]: {err}")
 
+            # Opción 3: listar clientes
             elif opcion == "3":
                 print("\n--- LISTADO DE CLIENTES REGISTRADOS ---")
                 clientes = sistema.listar_clientes()
@@ -98,6 +116,7 @@ def main():
                     for c in clientes:
                         print(f" • {c.obtener_resumen()}")
 
+            # Opción 4: registrar un servicio
             elif opcion == "4":
                 print("\n--- REGISTRAR SERVICIO ESPECIALIZADO ---")
                 print("1. Reserva de Sala | 2. Alquiler de Equipo | 3. Asesoría Especializada")
@@ -105,7 +124,9 @@ def main():
                 codigo = input("Código del servicio (ej. SALA-201): ").strip()
                 nombre = input("Nombre descriptivo: ").strip()
 
+                # try/except para controlar datos numéricos y errores del sistema
                 try:
+                    # Crea el tipo de servicio según la opción elegida
                     if tipo == "1":
                         tarifa = float(input("Tarifa por hora ($): ").strip())
                         capacidad = int(input("Capacidad máxima de personas: ").strip())
@@ -124,13 +145,17 @@ def main():
                         print("[AVISO]: Tipo de servicio no válido. Operación cancelada.")
                         continue
 
+                    # Registra el servicio en el catálogo
                     sistema.registrar_servicio(servicio)
                     print(f"[OK] Servicio agregado exitosamente: {servicio.describir_servicio()}")
+                # Captura errores de conversión numérica
                 except ValueError as ve:
                     print(f"[AVISO]: Dato numérico inválido ingresado: {ve}")
+                # Captura excepciones personalizadas del sistema
                 except SoftwareFJException as err:
                     print(f"[AVISO DEL SISTEMA]: {err}")
 
+            # Opción 5: listar servicios
             elif opcion == "5":
                 print("\n--- CATÁLOGO DE SERVICIOS DISPONIBLES ---")
                 servicios = sistema.listar_servicios()
@@ -140,8 +165,10 @@ def main():
                     for s in servicios:
                         print(f" • {s.describir_servicio()}")
 
+            # Opción 6: crear una reserva
             elif opcion == "6":
                 print("\n--- CREAR UNA NUEVA RESERVA ---")
+                # try/except para controlar datos inválidos al crear la reserva
                 try:
                     id_res = input("ID o Código para la reserva (ej. RES-100): ").strip()
                     id_cli = input("Cédula del cliente: ").strip()
@@ -149,12 +176,15 @@ def main():
                     dur_str = input("Duración (horas para sala/asesoría, días para equipo): ").strip()
                     desc_str = input("Descuento (ej. 0.10 para 10%, 0 si no aplica): ").strip() or "0"
 
+                    # Convierte la duración y el descuento a número
                     duracion = float(dur_str)
                     descuento = float(desc_str)
 
+                    # Rechaza valores NaN o infinitos
                     if not math.isfinite(duracion) or not math.isfinite(descuento):
                         raise ValueError("Los valores no pueden ser NaN o Infinito.")
 
+                    # Crea la reserva a través del gestor
                     reserva = sistema.crear_reserva(
                         id_reserva=id_res,
                         identificacion_cliente=id_cli,
@@ -163,39 +193,48 @@ def main():
                         descuento=descuento,
                     )
                     print(f"[OK] Reserva creada: {reserva}")
+                # Captura errores numéricos
                 except ValueError as ve:
                     print(f"[AVISO]: La duración o descuento deben ser números finitos válidos: {ve}")
+                # Captura excepciones personalizadas del sistema
                 except SoftwareFJException as err:
                     print(f"[AVISO DEL SISTEMA]: {err}")
 
+            # Opción 7: confirmar una reserva
             elif opcion == "7":
                 print("\n--- CONFIRMAR RESERVA ---")
                 id_res = input("ID de la reserva a confirmar: ").strip()
+                # try/except: si la reserva no existe o su estado no lo permite, se muestra el aviso
                 try:
                     sistema.confirmar_reserva(id_res)
                     print(f"[OK] Reserva {id_res} confirmada exitosamente.")
                 except SoftwareFJException as err:
                     print(f"[AVISO DEL SISTEMA]: {err}")
 
+            # Opción 8: procesar o facturar una reserva
             elif opcion == "8":
                 print("\n--- PROCESAR / FACTURAR RESERVA ---")
                 id_res = input("ID de la reserva a procesar: ").strip()
+                # try/except para controlar errores de estado
                 try:
                     sistema.procesar_reserva(id_res)
                     print(f"[OK] Reserva {id_res} procesada y facturada exitosamente.")
                 except SoftwareFJException as err:
                     print(f"[AVISO DEL SISTEMA]: {err}")
 
+            # Opción 9: cancelar una reserva
             elif opcion == "9":
                 print("\n--- CANCELAR RESERVA ---")
                 id_res = input("ID de la reserva a cancelar: ").strip()
                 motivo = input("Motivo de la cancelación: ").strip()
+                # try/except para controlar errores de cancelación
                 try:
                     sistema.cancelar_reserva(id_res, motivo)
                     print(f"[OK] Reserva {id_res} cancelada exitosamente.")
                 except SoftwareFJException as err:
                     print(f"[AVISO DEL SISTEMA]: {err}")
 
+            # Opción 10: mostrar el reporte del sistema
             elif opcion == "10":
                 print("\n--- REPORTE DE ESTADO DEL SISTEMA ---")
                 rep = sistema.generar_reporte_estado()
@@ -209,9 +248,11 @@ def main():
                 for r in sistema.listar_reservas():
                     print(f"  - {r.obtener_resumen()}")
 
+            # Opción 11: mostrar las últimas líneas del archivo de logs
             elif opcion == "11":
                 print("\n--- REGISTRO DE AUDITORÍA (LOGS RECIENTES) ---")
                 ruta_log = BASE_DIR / "logs" / "software_fj.log"
+                # Verifica que el archivo exista antes de abrirlo
                 if ruta_log.exists():
                     with open(ruta_log, "r", encoding="utf-8") as f:
                         lineas = f.readlines()
@@ -221,10 +262,12 @@ def main():
                 else:
                     print("No se ha generado archivo de logs aún.")
 
+            # Opción 0: salir del programa
             elif opcion == "0":
                 print("\nSaliendo del sistema Software FJ. ¡Hasta pronto!")
                 logger_sistema.info("Sesión finalizada por el usuario desde el menú principal.")
                 break
+            # Cualquier otra opción es inválida
             else:
                 print("[AVISO]: Opción inválida. Ingrese un número del 0 al 11.")
 
@@ -233,12 +276,15 @@ def main():
             logger_sistema.info("Entrada estándar cerrada (EOFError detectado); finalizando ejecución limpiamente.")
             print("\n[INFO]: Entrada estándar finalizada. Cerrando Software FJ.")
             break
+        # Si el usuario presiona Ctrl+C, vuelve al menú sin cerrar el programa
         except KeyboardInterrupt:
             print("\nOperación interrumpida por el usuario. Regresando al menú.")
+        # Captura cualquier error inesperado, lo registra y continúa
         except Exception as e:
             print(f"[ERROR CONTROLADO]: Eventualidad imprevista: {e}")
             logger_sistema.exception(f"Excepción imprevista capturada en el bucle principal: {e}")
 
 
+# Punto de entrada: ejecuta main() solo si se corre este archivo
 if __name__ == "__main__":
     main()
